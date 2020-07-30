@@ -4,19 +4,22 @@ const { setupPassport } = require('./services/authService');
 
 const app = express();
 
-require('dotenv').config();
+(async () => {
+  require('dotenv').config();
 
-require('./middleware')(app);
+  require('./middleware')(app);
 
-require('./services/mongo-connector')
-  .mongoInit()
-  .then(() => require('./models/init')())
-  .then(() => setupPassport(passport))
-  .then(() => {
-    app.use(passport.initialize());
-    app.use(passport.session());
-  })
-  .then(() => require('./routes')(app, passport));
+  await require('./services/mongo-connector').mongoInit();
+
+  await require('./models/init')();
+
+  await setupPassport(passport);
+
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  require('./routes')(app, passport);
+})();
 
 const PORT = process.env.PORT || 8000;
 
